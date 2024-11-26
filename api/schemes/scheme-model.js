@@ -3,11 +3,11 @@ const db = require('../../data/db-config')
 
 function find() { // EXERCISE A
   const result = db('schemes as sc')
-  .select('sc.*')
-  .count('st.step_id as number_of_steps')
-  .leftJoin('steps as st','sc.scheme_id','st.scheme_id')
-  .groupBy('sc.scheme_id')
-  .orderBy('sc.scheme_id','asc')
+    .select('sc.*')
+    .count('st.step_id as number_of_steps')
+    .leftJoin('steps as st', 'sc.scheme_id', 'st.scheme_id')
+    .groupBy('sc.scheme_id')
+    .orderBy('sc.scheme_id', 'asc')
 
   return result
   /*
@@ -28,21 +28,39 @@ function find() { // EXERCISE A
   */
 }
 //Additional Function 
-async function checkID(id){
-  const result = await db('schemes').where('scheme_id',id).first()
+async function checkID(id) {
+  const result = await db('schemes').where('scheme_id', id).first()
   return result
 }
 //End
 async function findById(scheme_id) { // EXERCISE B
-    const rows =await db('schemes as sc')
-    .select('sc.scheme_name','st.*')
-    .leftJoin('steps as st','sc.scheme_id','st.scheme_id')
-    .orderBy('st.step_number','asc')
-    .where('sc.scheme_id',scheme_id)
-    return rows
+  const rows = await db('schemes as sc')
+    .select('sc.scheme_name', 'st.*')
+    .leftJoin('steps as st', 'sc.scheme_id', 'st.scheme_id')
+    .orderBy('st.step_number', 'asc')
+    .where('sc.scheme_id', scheme_id)
+
+
+  const result = rows.reduce((acc, row) => {
+    if (row.instructions) {
+      acc.steps.push({
+        step_id: row.step_id,
+        step_number: row.step_number,
+        instructions: row.instructions
+      })
+    }
+    return acc
+  }, {
+    scheme_id: rows[0].scheme_id,
+    scheme_name: rows[0].scheme_name,
+    steps: []
+  })
+  return result
   /*
     1B- Study the SQL query below running it in SQLite Studio against `data/schemes.db3`:
-
+   "step_id": 2,
+            "step_number": 1,
+            "instructions": "solve prime number theory"
       SELECT
           sc.scheme_name,
           st.*
