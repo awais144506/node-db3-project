@@ -1,24 +1,14 @@
 const Scheme = require('./scheme-model')
-
-/*
-  If `scheme_id` does not exist in the database:
-
-  status 404
-  {
-    "message": "scheme with scheme_id <actual id> not found"
-  }
-*/
 const checkSchemeId = async (req, res, next) => {
   try {
-        const scheme = await Scheme.checkID(req.params.scheme_id)
-        if(scheme)
-        {
-          req.scheme = scheme
-          next()
-        }
-        else{
-          next({status:404,message:'Not found'})
-        }
+    const scheme = await Scheme.checkID(req.params.scheme_id)
+    if (scheme) {
+      req.scheme = scheme
+      next()
+    }
+    else {
+      next({ status: 404, message: `scheme with scheme_id ${req.params.scheme_id} not found` })
+    }
   }
   catch (err) {
     next(err)
@@ -33,8 +23,21 @@ const checkSchemeId = async (req, res, next) => {
     "message": "invalid scheme_name"
   }
 */
-const validateScheme = (req, res, next) => {
-
+const validateScheme = async (req, res, next) => {
+  try {
+    const { scheme_name } = req.body
+    if (typeof scheme_name !== 'string'
+      || scheme_name === undefined
+      || !scheme_name.trim()) {
+      next({ status: 400, message: 'invalid scheme_name' })
+    }
+    else {
+      next()
+    }
+  }
+  catch (error) {
+    next(error)
+  }
 }
 
 /*
@@ -47,7 +50,19 @@ const validateScheme = (req, res, next) => {
   }
 */
 const validateStep = (req, res, next) => {
-
+  try {
+    const { step_number, instructions } = req.body
+    if (NaN(step_number) || step_number < 1
+    ||!instructions.trim()||typeof instructions !=='string') {
+      next({ status: 400, message: 'invalid step' })
+    }
+    else {
+      next()
+    }
+  }
+  catch (error) {
+    next(error)
+  }
 }
 
 module.exports = {
